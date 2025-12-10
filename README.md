@@ -2,6 +2,8 @@
 
 A modern, interactive weekly course schedule planner designed specifically for DLSU students.
 
+⚠️ **IMPORTANT DISCLAIMER**: This website is currently in development and **NOT user-friendly (...yet)**. Users may experience some bugs, unexpected behavior, or incomplete features. Please use with patience and report any issues you encounter.
+
 ## 🚀 Live Demo
 
 [View Live Demo](https://michaelaaronluyun.github.io/course-schedule-planner/)
