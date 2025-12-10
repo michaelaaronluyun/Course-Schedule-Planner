@@ -13,7 +13,7 @@ class ScheduleMaker {
             { start: "19:45", end: "21:15", label: "Slot 8", period: "evening" }
         ];
         
-        // Predefined color palette (10 colors)
+        // color palette
         this.colorPalette = [
             '#3498db', // Blue
             '#2ecc71', // Green
@@ -27,23 +27,73 @@ class ScheduleMaker {
             '#00643c'  // Dark Green
         ];
         
-        this.courses = [];
-        this.currentSettings = {
-            showWeekends: true,
-            showWednesday: true,
-            timeFormat: '12',
-            highlightIrregular: true,
-            hideEmptyRows: false
-        };
+        this.loadFromStorage();
+        
+        if (!this.courses) {
+            this.courses = [];
+        }
+        
+        if (!this.currentSettings) {
+            this.currentSettings = {
+                showWeekends: true,
+                showWednesday: true,
+                timeFormat: '12',
+                highlightIrregular: true,
+                hideEmptyRows: false
+            };
+        }
         
         this.days = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
         this.daysShort = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
         this.activeTimeFilter = 'all';
         
-        this.selectedColor = this.colorPalette[0]; // Default to first color
+        this.selectedColor = this.colorPalette[0];
         this.editSelectedColor = this.colorPalette[0];
         
         this.initialize();
+    }
+    
+    loadFromStorage() {
+        try {
+            const savedCourses = localStorage.getItem('scheduleCourses');
+            const savedSettings = localStorage.getItem('scheduleSettings');
+            
+            if (savedCourses) {
+                this.courses = JSON.parse(savedCourses);
+            }
+            
+            if (savedSettings) {
+                this.currentSettings = JSON.parse(savedSettings);
+            }
+        } catch (error) {
+            console.error('Error loading data from localStorage:', error);
+            this.courses = [];
+            this.currentSettings = {
+                showWeekends: true,
+                showWednesday: true,
+                timeFormat: '12',
+                highlightIrregular: true,
+                hideEmptyRows: false
+            };
+        }
+    }
+    
+    saveToStorage() {
+        try {
+            localStorage.setItem('scheduleCourses', JSON.stringify(this.courses));
+            localStorage.setItem('scheduleSettings', JSON.stringify(this.currentSettings));
+        } catch (error) {
+            console.error('Error saving data to localStorage:', error);
+        }
+    }
+    
+    clearStorage() {
+        try {
+            localStorage.removeItem('scheduleCourses');
+            localStorage.removeItem('scheduleSettings');
+        } catch (error) {
+            console.error('Error clearing localStorage:', error);
+        }
     }
     
     initialize() {
@@ -100,15 +150,27 @@ class ScheduleMaker {
 
         this.currentlyEditedCourse = null;
         
-        // Initialize color palettes
         this.initializeColorPalettes();
         
         this.setupEventListeners();
+        
+        this.loadSettingsToUI();
+        
         this.generateSchedule();
+        this.updateCoursesList();
+    }
+    
+    loadSettingsToUI() {
+        if (this.currentSettings) {
+            this.timeFormatSelect.value = this.currentSettings.timeFormat;
+            this.showWeekendsCheckbox.checked = this.currentSettings.showWeekends;
+            this.showWednesdayCheckbox.checked = this.currentSettings.showWednesday;
+            this.highlightIrregularCheckbox.checked = this.currentSettings.highlightIrregular;
+            this.hideEmptyRowsCheckbox.checked = this.currentSettings.hideEmptyRows;
+        }
     }
     
     initializeColorPalettes() {
-        // Create color palette for add course dialog
         this.colorPaletteElement.innerHTML = '';
         this.colorPalette.forEach((color, index) => {
             const colorOption = document.createElement('div');
@@ -123,7 +185,6 @@ class ScheduleMaker {
             this.colorPaletteElement.appendChild(colorOption);
         });
         
-        // Create color palette for edit course dialog
         this.editColorPaletteElement.innerHTML = '';
         this.colorPalette.forEach((color, index) => {
             const colorOption = document.createElement('div');
@@ -138,7 +199,6 @@ class ScheduleMaker {
             this.editColorPaletteElement.appendChild(colorOption);
         });
         
-        // Set initial preview
         this.colorPreview.style.backgroundColor = this.selectedColor;
         this.colorText.textContent = this.selectedColor;
         this.editColorPreview.style.backgroundColor = this.editSelectedColor;
@@ -151,7 +211,6 @@ class ScheduleMaker {
             this.colorPreview.style.backgroundColor = color;
             this.colorText.textContent = color;
             
-            // Update selected state in palette
             this.colorPaletteElement.querySelectorAll('.color-option').forEach(option => {
                 option.classList.remove('selected');
                 if (option.dataset.color === color) {
@@ -163,7 +222,6 @@ class ScheduleMaker {
             this.editColorPreview.style.backgroundColor = color;
             this.editColorText.textContent = color;
             
-            // Update selected state in edit palette
             this.editColorPaletteElement.querySelectorAll('.color-option').forEach(option => {
                 option.classList.remove('selected');
                 if (option.dataset.color === color) {
@@ -182,7 +240,6 @@ class ScheduleMaker {
             }
         });
         
-        // Character counter for description
         this.courseDescriptionInput.addEventListener('input', () => {
             const count = this.courseDescriptionInput.value.length;
             this.courseDescriptionCounter.textContent = `${count}/30`;
@@ -202,10 +259,11 @@ class ScheduleMaker {
         });
         
         this.clearAllBtn.addEventListener('click', () => {
-            if (this.courses.length > 0 && confirm('Are you sure you want to remove all courses?')) {
+            if (this.courses.length > 0 && confirm('Are you sure you want to remove all courses? This will clear all saved data.')) {
                 this.courses = [];
                 this.updateCoursesList();
                 this.generateSchedule();
+                this.saveToStorage();
             }
         });
         
@@ -250,6 +308,7 @@ class ScheduleMaker {
             this.currentSettings.hideEmptyRows = this.hideEmptyRowsCheckbox.checked;
             
             this.generateSchedule();
+            this.saveToStorage();
             
             this.closeDialog(this.settingsDialog);
         });
@@ -309,6 +368,10 @@ class ScheduleMaker {
                 this.closeDialog(this.editCourseDialog);
             }
         });
+        
+        window.addEventListener('beforeunload', () => {
+            this.saveToStorage();
+        });
     }
     
     openDialog(dialog) {
@@ -328,12 +391,10 @@ class ScheduleMaker {
             this.courseDescriptionCounter.textContent = "0/30";
             this.courseDescriptionCounter.classList.remove('warning');
             
-            // Reset to default color
             this.selectedColor = this.colorPalette[0];
             this.colorPreview.style.backgroundColor = this.selectedColor;
             this.colorText.textContent = this.selectedColor;
             
-            // Update selected state in palette
             this.colorPaletteElement.querySelectorAll('.color-option').forEach((option, index) => {
                 option.classList.toggle('selected', index === 0);
             });
@@ -351,7 +412,6 @@ class ScheduleMaker {
         this.editCourseNameInput.value = course.name;
         this.editCourseDescriptionInput.value = course.description || '';
         
-        // Update character counter
         const descCount = course.description ? course.description.length : 0;
         this.editCourseDescriptionCounter.textContent = `${descCount}/30`;
         this.editCourseDescriptionCounter.classList.toggle('warning', descCount >= 30);
@@ -359,12 +419,10 @@ class ScheduleMaker {
         this.editStartTimeInput.value = course.startTime;
         this.editEndTimeInput.value = course.endTime;
         
-        // Set selected color
         this.editSelectedColor = course.color;
         this.editColorPreview.style.backgroundColor = course.color;
         this.editColorText.textContent = course.color;
         
-        // Update selected state in edit palette
         this.editColorPaletteElement.querySelectorAll('.color-option').forEach(option => {
             option.classList.remove('selected');
             if (option.dataset.color === course.color) {
@@ -440,6 +498,7 @@ class ScheduleMaker {
         
         this.updateCoursesList();
         this.generateSchedule();
+        this.saveToStorage();
         
         this.closeDialog(this.editCourseDialog);
         this.currentlyEditedCourse = null;
@@ -516,6 +575,7 @@ class ScheduleMaker {
         
         this.updateCoursesList();
         this.generateSchedule();
+        this.saveToStorage();
         
         this.courseForm.reset();
         this.startTimeInput.value = "07:30";
@@ -524,12 +584,10 @@ class ScheduleMaker {
         this.courseDescriptionCounter.textContent = "0/30";
         this.courseDescriptionCounter.classList.remove('warning');
         
-        // Reset to default color
         this.selectedColor = this.colorPalette[0];
         this.colorPreview.style.backgroundColor = this.selectedColor;
         this.colorText.textContent = this.selectedColor;
         
-        // Update selected state in palette
         this.colorPaletteElement.querySelectorAll('.color-option').forEach((option, index) => {
             option.classList.toggle('selected', index === 0);
         });
@@ -576,6 +634,7 @@ class ScheduleMaker {
         
         this.updateCoursesList();
         this.generateSchedule();
+        this.saveToStorage();
     }
     
     updateCoursesList() {
@@ -697,9 +756,7 @@ class ScheduleMaker {
             slotsToShow = this.standardSlots.filter(slot => slot.period === this.activeTimeFilter);
         }
         
-        // Check if we should hide empty rows
         if (this.currentSettings.hideEmptyRows) {
-            // Filter slots to only show those that have courses
             slotsToShow = this.getSlotsWithCourses(slotsToShow, daysToShow);
         }
         
@@ -748,11 +805,9 @@ class ScheduleMaker {
         this.renderCoursesOnSchedule();
     }
     
-    // Get slots that have courses
     getSlotsWithCourses(slotsToCheck, daysToShow) {
         const slotsWithCourses = new Set();
         
-        // Check each course and mark which slots it appears in
         this.courses.forEach(course => {
             const slotIndex = this.standardSlots.findIndex(slot => 
                 slot.start === course.matchedSlot?.replace('Slot ', '') || 
@@ -762,12 +817,10 @@ class ScheduleMaker {
             
             if (slotIndex !== -1) {
                 const slot = this.standardSlots[slotIndex];
-                // Check if this slot should be shown based on active filter
                 if (this.activeTimeFilter === 'all' || slot.period === this.activeTimeFilter) {
                     slotsWithCourses.add(slotIndex);
                 }
             } else {
-                // For courses that don't match exactly, find nearest slot
                 const courseStartMinutes = this.timeToMinutes(course.startTime);
                 let nearestSlotIndex = 0;
                 let minDiff = Infinity;
@@ -788,7 +841,6 @@ class ScheduleMaker {
             }
         });
         
-        // Convert set back to slots array
         return slotsToCheck.filter(slot => {
             const slotIndex = this.standardSlots.findIndex(s => 
                 s.start === slot.start && s.end === slot.end
@@ -824,7 +876,6 @@ class ScheduleMaker {
                 
                 const slot = this.standardSlots[nearestSlotIndex];
                 
-                // Check if slot is visible (might be hidden if hideEmptyRows is on)
                 const isSlotVisible = this.isSlotVisible(slot);
                 if (!isSlotVisible) return;
                 
@@ -859,7 +910,6 @@ class ScheduleMaker {
             
             const slot = this.standardSlots[slotIndex];
             
-            // Check if slot is visible (might be hidden if hideEmptyRows is on)
             const isSlotVisible = this.isSlotVisible(slot);
             if (!isSlotVisible) return;
             
@@ -891,11 +941,9 @@ class ScheduleMaker {
         });
     }
     
-    // Check if a slot is currently visible in the table
     isSlotVisible(slot) {
         if (!this.currentSettings.hideEmptyRows) return true;
         
-        // Check if there's a row for this slot in the schedule body
         const slotRow = this.scheduleBody.querySelector(`tr[data-slot="${slot.label}"]`);
         return slotRow !== null;
     }
