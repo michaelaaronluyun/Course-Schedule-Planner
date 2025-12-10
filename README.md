@@ -6,7 +6,7 @@ A modern, interactive weekly course schedule planner designed specifically for D
 
 ## 🚀 Live Demo
 
-[View Live Demo](https://michaelaaronluyun.github.io/course-schedule-planner/)
+[View Live Demo](https://michaelaaronluyun.github.io/Course-Schedule-Planner/)
 
 ## 📋 Prerequisites
 
