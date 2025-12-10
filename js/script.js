@@ -31,6 +31,8 @@ class ScheduleMaker {
     initialize() {
         this.courseForm = document.getElementById('courseForm');
         this.courseNameInput = document.getElementById('courseName');
+        this.courseDescriptionInput = document.getElementById('courseDescription');
+        this.courseDescriptionCounter = document.getElementById('courseDescriptionCounter');
         this.startTimeInput = document.getElementById('startTime');
         this.endTimeInput = document.getElementById('endTime');
         this.colorInput = document.getElementById('colorInput');
@@ -50,7 +52,6 @@ class ScheduleMaker {
         this.printBtn = document.getElementById('printBtn');
         this.scheduleTable = document.getElementById('scheduleTable');
         
-        // Dialog elements
         this.addCourseBtn = document.getElementById('addCourseBtn');
         this.settingsBtn = document.getElementById('settingsBtn');
         this.viewCoursesBtn = document.getElementById('viewCoursesBtn');
@@ -62,10 +63,11 @@ class ScheduleMaker {
         this.cancelSettings = document.getElementById('cancelSettings');
         this.saveSettings = document.getElementById('saveSettings');
 
-        // Edit Course Dialog elements
         this.editCourseDialog = document.getElementById('editCourseDialog');
         this.editCourseForm = document.getElementById('editCourseForm');
         this.editCourseNameInput = document.getElementById('editCourseName');
+        this.editCourseDescriptionInput = document.getElementById('editCourseDescription');
+        this.editCourseDescriptionCounter = document.getElementById('editCourseDescriptionCounter');
         this.editStartTimeInput = document.getElementById('editStartTime');
         this.editEndTimeInput = document.getElementById('editEndTime');
         this.editColorInput = document.getElementById('editColorInput');
@@ -97,6 +99,19 @@ class ScheduleMaker {
                 this.startTimeInput.value = start;
                 this.endTimeInput.value = end;
             }
+        });
+        
+        // Character counter for description
+        this.courseDescriptionInput.addEventListener('input', () => {
+            const count = this.courseDescriptionInput.value.length;
+            this.courseDescriptionCounter.textContent = `${count}/25`;
+            this.courseDescriptionCounter.classList.toggle('warning', count >= 25);
+        });
+
+        this.editCourseDescriptionInput.addEventListener('input', () => {
+            const count = this.editCourseDescriptionInput.value.length;
+            this.editCourseDescriptionCounter.textContent = `${count}/25`;
+            this.editCourseDescriptionCounter.classList.toggle('warning', count >= 25);
         });
         
         this.courseForm.addEventListener('submit', (e) => {
@@ -235,6 +250,13 @@ class ScheduleMaker {
             this.startTimeInput.value = "07:30";
             this.endTimeInput.value = "09:00";
             this.timeSlotSelect.value = "";
+            this.courseDescriptionCounter.textContent = "0/25";
+            this.courseDescriptionCounter.classList.remove('warning');
+        }
+        
+        if (dialog === this.editCourseDialog) {
+            this.editCourseDescriptionCounter.textContent = "0/25";
+            this.editCourseDescriptionCounter.classList.remove('warning');
         }
     }
 
@@ -242,6 +264,13 @@ class ScheduleMaker {
         this.currentlyEditedCourse = course;
         
         this.editCourseNameInput.value = course.name;
+        this.editCourseDescriptionInput.value = course.description || '';
+        
+        // Update character counter
+        const descCount = course.description ? course.description.length : 0;
+        this.editCourseDescriptionCounter.textContent = `${descCount}/25`;
+        this.editCourseDescriptionCounter.classList.toggle('warning', descCount >= 25);
+        
         this.editStartTimeInput.value = course.startTime;
         this.editEndTimeInput.value = course.endTime;
         this.editColorInput.value = course.color;
@@ -306,6 +335,7 @@ class ScheduleMaker {
             this.editEndTimeInput.value === matchedSlot.end;
         
         this.currentlyEditedCourse.name = courseName;
+        this.currentlyEditedCourse.description = this.editCourseDescriptionInput.value.trim() || '';
         this.currentlyEditedCourse.startTime = this.editStartTimeInput.value;
         this.currentlyEditedCourse.endTime = this.editEndTimeInput.value;
         this.currentlyEditedCourse.days = selectedDays;
@@ -378,6 +408,7 @@ class ScheduleMaker {
         const course = {
             id: Date.now(),
             name: this.courseNameInput.value,
+            description: this.courseDescriptionInput.value.trim() || '',
             startTime: this.startTimeInput.value,
             endTime: this.endTimeInput.value,
             days: selectedDays,
@@ -398,6 +429,8 @@ class ScheduleMaker {
         this.startTimeInput.value = "07:30";
         this.endTimeInput.value = "09:00";
         this.timeSlotSelect.value = "";
+        this.courseDescriptionCounter.textContent = "0/25";
+        this.courseDescriptionCounter.classList.remove('warning');
     }
     
     findClosestTimeSlot(startTime, endTime) {
@@ -473,6 +506,7 @@ class ScheduleMaker {
             const timeDisplay = this.formatTimeForDisplay(course.startTime) + ' - ' + this.formatTimeForDisplay(course.endTime);
             courseDetails.innerHTML = `
                 <div><i class="fas fa-clock"></i> ${timeDisplay}</div>
+                ${course.description ? `<div><i class="fas fa-align-left"></i> ${course.description}</div>` : ''}
                 <div><i class="fas fa-calendar"></i> ${course.days.map(d => d.substring(0, 3)).join(', ')}</div>
                 ${!course.isStandard ? '<div><i class="fas fa-exclamation-triangle"></i> Irregular time</div>' : ''}
             `;
@@ -773,6 +807,7 @@ class ScheduleMaker {
         const displayEnd = this.formatTimeForDisplay(course.endTime);
         eventElement.innerHTML = `
             <div class="event-title">${course.name}</div>
+            ${course.description ? `<div class="event-description">${course.description}</div>` : ''}
             <div class="event-time">${displayStart} - ${displayEnd}</div>
         `;
         

@@ -110,7 +110,16 @@
                 <form id="courseForm">
                     <div class="form-group">
                         <label for="courseName"><i class="fas fa-book"></i> Course Name (max 10 characters)</label>
-                        <input type="text" id="courseName" placeholder="e.g., CCPROG1" required>
+                        <input type="text" id="courseName" placeholder="e.g., CCPROG1" required maxlength="10">
+                    </div>
+                    
+                    <!-- NEW DESCRIPTION FIELD -->
+                    <div class="form-group">
+                        <label for="courseDescription"><i class="fas fa-align-left"></i> Description (optional, max 25 chars)</label>
+                        <input type="text" id="courseDescription" placeholder="e.g., Lecture, Lab, etc." maxlength="25">
+                        <div class="char-counter">
+                            <span id="courseDescriptionCounter">0/25</span>
+                        </div>
                     </div>
                     
                     <div class="time-group">
@@ -252,7 +261,16 @@
                 <form id="editCourseForm">
                     <div class="form-group">
                         <label for="editCourseName"><i class="fas fa-book"></i> Course Name (max 10 characters)</label>
-                        <input type="text" id="editCourseName" placeholder="e.g., CCPROG1" required>
+                        <input type="text" id="editCourseName" placeholder="e.g., CCPROG1" required maxlength="10">
+                    </div>
+                    
+                    <!-- NEW DESCRIPTION FIELD -->
+                    <div class="form-group">
+                        <label for="editCourseDescription"><i class="fas fa-align-left"></i> Description (optional, max 25 chars)</label>
+                        <input type="text" id="editCourseDescription" placeholder="e.g., Lecture, Lab, etc." maxlength="25">
+                        <div class="char-counter">
+                            <span id="editCourseDescriptionCounter">0/25</span>
+                        </div>
                     </div>
                     
                     <div class="time-group">

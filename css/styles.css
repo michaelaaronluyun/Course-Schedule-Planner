@@ -57,10 +57,7 @@ body {
 header {
     padding: 30px 0;
     text-align: center;
-    /* background: white; */
-    /* border-radius: var(--border-radius); */
     margin: 20px 0 30px;
-    /* box-shadow: var(--shadow); */
 }
 
 .header-content h1 {
@@ -152,28 +149,27 @@ input:focus, select:focus {
     flex: 1;
 }
 
-/* Also update the days-selector container if needed */
 .days-selector {
     display: flex;
     flex-wrap: wrap;
-    gap: 6px; /* Reduced gap from 10px */
+    gap: 6px;
     margin-top: 5px;
 }
 
 .day-checkbox {
     flex: 1;
-    min-width: 40px; /* Reduced from 60px */
-    max-width: 80px; /* Added to prevent too wide on small screens */
+    min-width: 40px;
+    max-width: 80px;
     display: flex;
     align-items: center;
     justify-content: center;
-    padding: 6px 8px; /* Reduced padding */
+    padding: 6px 8px;
     background-color: var(--light);
     border-radius: var(--border-radius-sm);
     cursor: pointer;
     transition: all 0.2s;
     border: 2px solid transparent;
-    font-size: 0.85rem; /* Slightly smaller font */
+    font-size: 0.85rem;
 }
 
 .day-checkbox:hover {
@@ -182,7 +178,7 @@ input:focus, select:focus {
 
 .day-checkbox input {
     width: auto;
-    margin-right: 0px; /* Reduced from 8px */
+    margin-right: 0px;
 }
 
 .day-checkbox input:checked + span {
@@ -224,6 +220,18 @@ input:focus, select:focus {
     font-family: monospace;
     font-size: 0.9rem;
     color: var(--secondary);
+}
+
+/* Character counter styles */
+.char-counter {
+    text-align: right;
+    font-size: 0.8rem;
+    color: #7f8c8d;
+    margin-top: 4px;
+}
+
+.char-counter.warning {
+    color: #e74c3c;
 }
 
 .form-actions {
@@ -539,6 +547,16 @@ input:focus, select:focus {
     text-overflow: ellipsis;
 }
 
+.event-description {
+    font-size: 0.7rem;
+    opacity: 0.9;
+    margin-top: 2px;
+    font-style: italic;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
 .event-time {
     font-size: 0.75rem;
     opacity: 0.9;
@@ -830,12 +848,11 @@ footer {
     }
 }
 
-/* Add this to your styles.css */
 .form-group label.checkbox-label {
     display: flex;
     align-items: center;
     justify-content: space-between;
-    flex-direction: row; /* Puts checkbox on the right */
+    flex-direction: row;
     cursor: pointer;
     font-weight: 600;
     color: var(--primary);
@@ -844,14 +861,13 @@ footer {
 .form-group label.checkbox-label input[type="checkbox"] {
     width: auto;
     margin-left: 10px;
-    order: 1; /* Ensures checkbox is on the right */
+    order: 1;
 }
 
 .form-group label.checkbox-label span {
-    order: 2; /* Ensures text is on the left */
+    order: 2;
 }
 
-/* Add these styles to ensure export captures everything */
 #exportTempContainer {
     font-family: 'Montserrat', sans-serif !important;
 }
