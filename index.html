@@ -1,0 +1,338 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Course Schedule Planner</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700&family=Poppins:wght@400;500;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="css/styles.css">
+    <script src="https://html2canvas.hertzen.com/dist/html2canvas.min.js"></script>
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>📅</text></svg>">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <div class="header-content">
+                <h1><i class="fas fa-calendar-alt"></i> Course Schedule Planner</h1>
+                <p class="subtitle">a weekly planner centered for DLSU students!</p>
+            </div>
+        </header>
+        
+        <main class="main-content">
+            <div class="quick-actions">
+                <button id="addCourseBtn" class="btn btn-primary">
+                    <i class="fas fa-plus-circle"></i> Add New Course
+                </button>
+                <button id="settingsBtn" class="btn btn-secondary">
+                    <i class="fas fa-cog"></i> Settings
+                </button>
+                <button id="viewCoursesBtn" class="btn btn-secondary">
+                    <i class="fas fa-list"></i> View Courses
+                </button>
+                <button id="clearAllBtn" class="btn btn-secondary">
+                    <i class="fas fa-trash-alt"></i> Clear All
+                </button>
+            </div>
+            
+            <section class="calendar-section">
+                <div class="calendar-header">
+                    <h2><i class="fas fa-calendar-week"></i> Weekly Schedule</h2>
+                    <div class="calendar-controls">
+                        <button id="exportBtn" class="btn btn-export">
+                            <i class="fas fa-download"></i> Export as Image
+                        </button>
+                        <button id="printBtn" class="btn btn-secondary">
+                            <i class="fas fa-print"></i> Print Schedule
+                        </button>
+                    </div>
+                </div>
+                
+                <div class="time-slot-nav">
+                    <button class="time-slot-btn active" data-slot="all">All Slots</button>
+                    <button class="time-slot-btn" data-slot="morning">Morning (7:30-12:30)</button>
+                    <button class="time-slot-btn" data-slot="afternoon">Afternoon (12:45-5:45)</button>
+                    <button class="time-slot-btn" data-slot="evening">Evening (6:00-9:15)</button>
+                </div>
+                
+                <div class="calendar-container">
+                    <div class="schedule-table-container">
+                        <table class="schedule-table" id="scheduleTable">
+                            <thead id="scheduleHeader">
+                            </thead>
+                            <tbody id="scheduleBody">
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+                
+                <div class="calendar-footer">
+                    <p class="hint">
+                        <i class="fas fa-lightbulb"></i> Tip: Easily Add/Edit courses by clicking on the cell in the schedule!
+                    </p>
+                </div>
+            </section>
+            
+            <div class="courses-sidebar">
+                <h3><i class="fas fa-list"></i> Your Courses</h3>
+                <div id="coursesContainer">
+                    <div class="empty-state" id="emptyCourses">
+                        <i class="fas fa-book-open"></i>
+                        <p>No courses added yet</p>
+                        <p class="small">Click "Add New Course" to add your first course</p>
+                    </div>
+                </div>
+            </div>
+        </main>
+        
+        <footer>
+            <p>Course Schedule Planner &copy; 2025 | Made by boopbap</p>
+            <!-- <div class="footer-links">
+                <a href="#"><i class="fas fa-question-circle"></i> Help</a>
+                <a href="#"><i class="fas fa-share-alt"></i> Share</a>
+                <a href="#"><i class="fas fa-envelope"></i> Contact</a>
+            </div> -->
+        </footer>
+    </div>
+
+    <!-- Add Course Dialog -->
+    <div class="dialog-overlay" id="addCourseDialog">
+        <div class="dialog">
+            <div class="dialog-header">
+                <h2><i class="fas fa-plus-circle"></i> Add New Course</h2>
+                <button class="close-dialog" id="closeAddCourseDialog">&times;</button>
+            </div>
+            <div class="dialog-content">
+                <form id="courseForm">
+                    <div class="form-group">
+                        <label for="courseName"><i class="fas fa-book"></i> Course Name (max 10 characters)</label>
+                        <input type="text" id="courseName" placeholder="e.g., CCPROG1" required>
+                    </div>
+                    
+                    <div class="time-group">
+                        <div class="form-group">
+                            <label for="startTime"><i class="fas fa-clock"></i> Start Time</label>
+                            <input type="time" id="startTime" required value="07:30" step="300">
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="endTime"><i class="fas fa-clock"></i> End Time</label>
+                            <input type="time" id="endTime" required value="09:00" step="300">
+                        </div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label><i class="fas fa-calendar-day"></i> Days of Week</label>
+                        <div class="days-selector">
+                            <label class="day-checkbox">
+                                <input type="checkbox" name="day" value="Monday">
+                                <span>Mon</span>
+                            </label>
+                            <label class="day-checkbox">
+                                <input type="checkbox" name="day" value="Tuesday">
+                                <span>Tue</span>
+                            </label>
+                            <label class="day-checkbox">
+                                <input type="checkbox" name="day" value="Wednesday">
+                                <span>Wed</span>
+                            </label>
+                            <label class="day-checkbox">
+                                <input type="checkbox" name="day" value="Thursday">
+                                <span>Thu</span>
+                            </label>
+                            <label class="day-checkbox">
+                                <input type="checkbox" name="day" value="Friday">
+                                <span>Fri</span>
+                            </label>
+                            <label class="day-checkbox">
+                                <input type="checkbox" name="day" value="Saturday">
+                                <span>Sat</span>
+                            </label>
+                        </div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label><i class="fas fa-palette"></i> Course Color</label>
+                        <div class="color-picker">
+                            <input type="color" id="colorInput" value="#3498db">
+                            <div class="color-preview" id="colorPreview"></div>
+                            <span id="colorText">#3498db</span>
+                        </div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="timeSlotSelect"><i class="fas fa-clock"></i> Quick Time Slot</label>
+                        <select id="timeSlotSelect">
+                            <option value="">Custom time</option>
+                            <option value="07:30-09:00">7:30 AM - 9:00 AM</option>
+                            <option value="09:15-10:45">9:15 AM - 10:45 AM</option>
+                            <option value="11:00-12:30">11:00 AM - 12:30 PM</option>
+                            <option value="12:45-14:15">12:45 PM - 2:15 PM</option>
+                            <option value="14:30-16:00">2:30 PM - 4:00 PM</option>
+                            <option value="16:15-17:45">4:15 PM - 5:45 PM</option>
+                            <option value="18:00-19:30">6:00 PM - 7:30 PM</option>
+                            <option value="19:45-21:15">7:45 PM - 9:15 PM</option>
+                        </select>
+                    </div>
+                    
+                    <div class="form-actions">
+                        <button type="submit" class="btn btn-primary">
+                            <i class="fas fa-plus"></i> Add Course
+                        </button>
+                        <button type="button" class="btn btn-secondary" id="cancelAddCourse">
+                            Cancel
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Settings Dialog -->
+    <div class="dialog-overlay" id="settingsDialog">
+        <div class="dialog">
+            <div class="dialog-header">
+                <h2><i class="fas fa-cog"></i> Settings</h2>
+                <button class="close-dialog" id="closeSettingsDialog">&times;</button>
+            </div>
+            <div class="dialog-content">
+                <div class="form-group">
+                    <label for="timeFormat">Time Format</label>
+                    <select id="timeFormat">
+                        <option value="12">12-hour format</option>
+                        <option value="24">24-hour format</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label class="checkbox-label">
+                        Show Wednesday
+                        <input type="checkbox" id="showWednesday" checked>
+                    </label>
+                </div>
+                
+                <div class="form-group">
+                    <label class="checkbox-label">
+                        Show Saturday
+                        <input type="checkbox" id="showWeekends" checked>
+                    </label>
+                </div>
+
+                <div class="form-group">
+                    <label class="checkbox-label">
+                        Highlight Irregular Times
+                        <input type="checkbox" id="highlightIrregular" checked>
+                    </label>
+                </div>
+                
+                <div class="form-actions">
+                    <button type="button" class="btn btn-primary" id="saveSettings">
+                        <i class="fas fa-save"></i> Save Settings
+                    </button>
+                    <button type="button" class="btn btn-secondary" id="cancelSettings">
+                        Cancel
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Edit Course Dialog -->
+    <div class="dialog-overlay" id="editCourseDialog">
+        <div class="dialog">
+            <div class="dialog-header">
+                <h2><i class="fas fa-edit"></i> Edit Course</h2>
+                <button class="close-dialog" id="closeEditCourseDialog">&times;</button>
+            </div>
+            <div class="dialog-content">
+                <form id="editCourseForm">
+                    <div class="form-group">
+                        <label for="editCourseName"><i class="fas fa-book"></i> Course Name (max 10 characters)</label>
+                        <input type="text" id="editCourseName" placeholder="e.g., CCPROG1" required>
+                    </div>
+                    
+                    <div class="time-group">
+                        <div class="form-group">
+                            <label for="editStartTime"><i class="fas fa-clock"></i> Start Time</label>
+                            <input type="time" id="editStartTime" required step="300">
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="editEndTime"><i class="fas fa-clock"></i> End Time</label>
+                            <input type="time" id="editEndTime" required step="300">
+                        </div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label><i class="fas fa-calendar-day"></i> Days of Week</label>
+                        <div class="days-selector">
+                            <label class="day-checkbox">
+                                <input type="checkbox" name="editDay" value="Monday">
+                                <span>Mon</span>
+                            </label>
+                            <label class="day-checkbox">
+                                <input type="checkbox" name="editDay" value="Tuesday">
+                                <span>Tue</span>
+                            </label>
+                            <label class="day-checkbox">
+                                <input type="checkbox" name="editDay" value="Wednesday">
+                                <span>Wed</span>
+                            </label>
+                            <label class="day-checkbox">
+                                <input type="checkbox" name="editDay" value="Thursday">
+                                <span>Thu</span>
+                            </label>
+                            <label class="day-checkbox">
+                                <input type="checkbox" name="editDay" value="Friday">
+                                <span>Fri</span>
+                            </label>
+                            <label class="day-checkbox">
+                                <input type="checkbox" name="editDay" value="Saturday">
+                                <span>Sat</span>
+                            </label>
+                        </div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label><i class="fas fa-palette"></i> Course Color</label>
+                        <div class="color-picker">
+                            <input type="color" id="editColorInput" value="#3498db">
+                            <div class="color-preview" id="editColorPreview"></div>
+                            <span id="editColorText">#3498db</span>
+                        </div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="editTimeSlotSelect"><i class="fas fa-clock"></i> Quick Time Slot</label>
+                        <select id="editTimeSlotSelect">
+                            <option value="">Custom time</option>
+                            <option value="07:30-09:00">7:30 AM - 9:00 AM</option>
+                            <option value="09:15-10:45">9:15 AM - 10:45 AM</option>
+                            <option value="11:00-12:30">11:00 AM - 12:30 PM</option>
+                            <option value="12:45-14:15">12:45 PM - 2:15 PM</option>
+                            <option value="14:30-16:00">2:30 PM - 4:00 PM</option>
+                            <option value="16:15-17:45">4:15 PM - 5:45 PM</option>
+                            <option value="18:00-19:30">6:00 PM - 7:30 PM</option>
+                            <option value="19:45-21:15">7:45 PM - 9:15 PM</option>
+                        </select>
+                    </div>
+                    
+                    <div class="form-actions">
+                        <button type="button" class="btn btn-success" id="saveEditedCourse">
+                            <i class="fas fa-save"></i> Save
+                        </button>
+                        <button type="button" class="btn btn-danger" id="deleteEditedCourse">
+                            <i class="fas fa-trash"></i> Delete
+                        </button>
+                        <button type="button" class="btn btn-secondary" id="cancelEditCourse">
+                            Cancel
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <script src="js/script.js"></script>
+</body>
+</html>
