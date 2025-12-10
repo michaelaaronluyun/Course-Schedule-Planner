@@ -185,29 +185,42 @@ input:focus, select:focus {
     font-weight: 600;
 }
 
-.color-picker {
+/* Color palette styles */
+.color-palette {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-top: 8px;
+    margin-bottom: 12px;
+}
+
+.color-option {
+    width: 32px;
+    height: 32px;
+    border-radius: 6px;
+    cursor: pointer;
+    border: 2px solid transparent;
+    transition: all 0.2s;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.color-option:hover {
+    transform: scale(1.1);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+}
+
+.color-option.selected {
+    border: 3px solid var(--dark);
+    box-shadow: 0 0 0 2px rgba(0, 0, 0, 0.2);
+    transform: scale(1.1);
+}
+
+.selected-color-display {
     display: flex;
     align-items: center;
-    gap: 15px;
+    gap: 12px;
+    margin-top: 8px;
 }
-
-#colorInput {
-    width: 50px;
-    height: 40px;
-    padding: 0;
-    border: none;
-    border-radius: var(--border-radius-sm);
-    cursor: pointer;
-}
-
-#editColorInput {
-    width: 50px;
-    height: 40px;
-    padding: 0;
-    border: none;
-    border-radius: var(--border-radius-sm);
-    cursor: pointer;
-} 
 
 .color-preview {
     width: 40px;
@@ -216,10 +229,11 @@ input:focus, select:focus {
     border: 2px solid var(--border-color);
 }
 
-#colorText {
+#colorText, #editColorText {
     font-family: monospace;
     font-size: 0.9rem;
     color: var(--secondary);
+    font-weight: 500;
 }
 
 /* Character counter styles */
@@ -822,6 +836,15 @@ footer {
     
     .dialog {
         padding: 20px;
+    }
+    
+    .color-palette {
+        gap: 6px;
+    }
+    
+    .color-option {
+        width: 28px;
+        height: 28px;
     }
 }
 

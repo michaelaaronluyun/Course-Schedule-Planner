@@ -13,18 +13,35 @@ class ScheduleMaker {
             { start: "19:45", end: "21:15", label: "Slot 8", period: "evening" }
         ];
         
+        // Predefined color palette (10 colors)
+        this.colorPalette = [
+            '#3498db', // Blue
+            '#2ecc71', // Green
+            '#e74c3c', // Red
+            '#f39c12', // Orange
+            '#9b59b6', // Purple
+            '#ff8a9d', // Pink
+            '#34495e', // Dark Blue
+            '#e67e22', // Dark Orange
+            '#2c3e50', // Very Dark Blue
+            '#00643c'  // Dark Green
+        ];
+        
         this.courses = [];
         this.currentSettings = {
             showWeekends: true,
             showWednesday: true,
             timeFormat: '12',
             highlightIrregular: true,
-            hideEmptyRows: false  // NEW SETTING
+            hideEmptyRows: false
         };
         
         this.days = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
         this.daysShort = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
         this.activeTimeFilter = 'all';
+        
+        this.selectedColor = this.colorPalette[0]; // Default to first color
+        this.editSelectedColor = this.colorPalette[0];
         
         this.initialize();
     }
@@ -36,9 +53,12 @@ class ScheduleMaker {
         this.courseDescriptionCounter = document.getElementById('courseDescriptionCounter');
         this.startTimeInput = document.getElementById('startTime');
         this.endTimeInput = document.getElementById('endTime');
-        this.colorInput = document.getElementById('colorInput');
+        this.colorPaletteElement = document.getElementById('colorPalette');
+        this.editColorPaletteElement = document.getElementById('editColorPalette');
         this.colorPreview = document.getElementById('colorPreview');
         this.colorText = document.getElementById('colorText');
+        this.editColorPreview = document.getElementById('editColorPreview');
+        this.editColorText = document.getElementById('editColorText');
         this.timeSlotSelect = document.getElementById('timeSlotSelect');
         this.coursesContainer = document.getElementById('coursesContainer');
         this.emptyCourses = document.getElementById('emptyCourses');
@@ -48,7 +68,7 @@ class ScheduleMaker {
         this.showWeekendsCheckbox = document.getElementById('showWeekends');
         this.showWednesdayCheckbox = document.getElementById('showWednesday');
         this.highlightIrregularCheckbox = document.getElementById('highlightIrregular');
-        this.hideEmptyRowsCheckbox = document.getElementById('hideEmptyRows');  // NEW
+        this.hideEmptyRowsCheckbox = document.getElementById('hideEmptyRows');
         this.clearAllBtn = document.getElementById('clearAllBtn');
         this.exportBtn = document.getElementById('exportBtn');
         this.printBtn = document.getElementById('printBtn');
@@ -72,9 +92,6 @@ class ScheduleMaker {
         this.editCourseDescriptionCounter = document.getElementById('editCourseDescriptionCounter');
         this.editStartTimeInput = document.getElementById('editStartTime');
         this.editEndTimeInput = document.getElementById('editEndTime');
-        this.editColorInput = document.getElementById('editColorInput');
-        this.editColorPreview = document.getElementById('editColorPreview');
-        this.editColorText = document.getElementById('editColorText');
         this.editTimeSlotSelect = document.getElementById('editTimeSlotSelect');
         this.closeEditCourseDialog = document.getElementById('closeEditCourseDialog');
         this.saveEditedCourseBtn = document.getElementById('saveEditedCourse');
@@ -83,18 +100,80 @@ class ScheduleMaker {
 
         this.currentlyEditedCourse = null;
         
-        this.colorPreview.style.backgroundColor = this.colorInput.value;
+        // Initialize color palettes
+        this.initializeColorPalettes();
         
         this.setupEventListeners();
         this.generateSchedule();
     }
     
-    setupEventListeners() {
-        this.colorInput.addEventListener('input', () => {
-            this.colorPreview.style.backgroundColor = this.colorInput.value;
-            this.colorText.textContent = this.colorInput.value;
+    initializeColorPalettes() {
+        // Create color palette for add course dialog
+        this.colorPaletteElement.innerHTML = '';
+        this.colorPalette.forEach((color, index) => {
+            const colorOption = document.createElement('div');
+            colorOption.className = 'color-option';
+            if (index === 0) colorOption.classList.add('selected');
+            colorOption.style.backgroundColor = color;
+            colorOption.dataset.color = color;
+            colorOption.title = color;
+            colorOption.addEventListener('click', () => {
+                this.selectColor(color, 'add');
+            });
+            this.colorPaletteElement.appendChild(colorOption);
         });
-
+        
+        // Create color palette for edit course dialog
+        this.editColorPaletteElement.innerHTML = '';
+        this.colorPalette.forEach((color, index) => {
+            const colorOption = document.createElement('div');
+            colorOption.className = 'color-option';
+            if (index === 0) colorOption.classList.add('selected');
+            colorOption.style.backgroundColor = color;
+            colorOption.dataset.color = color;
+            colorOption.title = color;
+            colorOption.addEventListener('click', () => {
+                this.selectColor(color, 'edit');
+            });
+            this.editColorPaletteElement.appendChild(colorOption);
+        });
+        
+        // Set initial preview
+        this.colorPreview.style.backgroundColor = this.selectedColor;
+        this.colorText.textContent = this.selectedColor;
+        this.editColorPreview.style.backgroundColor = this.editSelectedColor;
+        this.editColorText.textContent = this.editSelectedColor;
+    }
+    
+    selectColor(color, dialogType) {
+        if (dialogType === 'add') {
+            this.selectedColor = color;
+            this.colorPreview.style.backgroundColor = color;
+            this.colorText.textContent = color;
+            
+            // Update selected state in palette
+            this.colorPaletteElement.querySelectorAll('.color-option').forEach(option => {
+                option.classList.remove('selected');
+                if (option.dataset.color === color) {
+                    option.classList.add('selected');
+                }
+            });
+        } else if (dialogType === 'edit') {
+            this.editSelectedColor = color;
+            this.editColorPreview.style.backgroundColor = color;
+            this.editColorText.textContent = color;
+            
+            // Update selected state in edit palette
+            this.editColorPaletteElement.querySelectorAll('.color-option').forEach(option => {
+                option.classList.remove('selected');
+                if (option.dataset.color === color) {
+                    option.classList.add('selected');
+                }
+            });
+        }
+    }
+    
+    setupEventListeners() {
         this.timeSlotSelect.addEventListener('change', (e) => {
             if (e.target.value) {
                 const [start, end] = e.target.value.split('-');
@@ -140,7 +219,7 @@ class ScheduleMaker {
             this.showWeekendsCheckbox.checked = this.currentSettings.showWeekends;
             this.showWednesdayCheckbox.checked = this.currentSettings.showWednesday;
             this.highlightIrregularCheckbox.checked = this.currentSettings.highlightIrregular;
-            this.hideEmptyRowsCheckbox.checked = this.currentSettings.hideEmptyRows;  // NEW
+            this.hideEmptyRowsCheckbox.checked = this.currentSettings.hideEmptyRows;
         });
         
         this.viewCoursesBtn.addEventListener('click', () => {
@@ -168,7 +247,7 @@ class ScheduleMaker {
             this.currentSettings.showWeekends = this.showWeekendsCheckbox.checked;
             this.currentSettings.showWednesday = this.showWednesdayCheckbox.checked;
             this.currentSettings.highlightIrregular = this.highlightIrregularCheckbox.checked;
-            this.currentSettings.hideEmptyRows = this.hideEmptyRowsCheckbox.checked;  // NEW
+            this.currentSettings.hideEmptyRows = this.hideEmptyRowsCheckbox.checked;
             
             this.generateSchedule();
             
@@ -198,11 +277,6 @@ class ScheduleMaker {
                     this.closeDialog(dialog);
                 }
             });
-        });
-
-        this.editColorInput.addEventListener('input', () => {
-            this.editColorPreview.style.backgroundColor = this.editColorInput.value;
-            this.editColorText.textContent = this.editColorInput.value;
         });
 
         this.editTimeSlotSelect.addEventListener('change', (e) => {
@@ -248,14 +322,21 @@ class ScheduleMaker {
 
         if (dialog === this.addCourseDialog) {
             this.courseForm.reset();
-            this.colorInput.value = "#3498db";
-            this.colorPreview.style.backgroundColor = "#3498db";
-            this.colorText.textContent = "#3498db";
             this.startTimeInput.value = "07:30";
             this.endTimeInput.value = "09:00";
             this.timeSlotSelect.value = "";
             this.courseDescriptionCounter.textContent = "0/30";
             this.courseDescriptionCounter.classList.remove('warning');
+            
+            // Reset to default color
+            this.selectedColor = this.colorPalette[0];
+            this.colorPreview.style.backgroundColor = this.selectedColor;
+            this.colorText.textContent = this.selectedColor;
+            
+            // Update selected state in palette
+            this.colorPaletteElement.querySelectorAll('.color-option').forEach((option, index) => {
+                option.classList.toggle('selected', index === 0);
+            });
         }
         
         if (dialog === this.editCourseDialog) {
@@ -277,9 +358,19 @@ class ScheduleMaker {
         
         this.editStartTimeInput.value = course.startTime;
         this.editEndTimeInput.value = course.endTime;
-        this.editColorInput.value = course.color;
+        
+        // Set selected color
+        this.editSelectedColor = course.color;
         this.editColorPreview.style.backgroundColor = course.color;
         this.editColorText.textContent = course.color;
+        
+        // Update selected state in edit palette
+        this.editColorPaletteElement.querySelectorAll('.color-option').forEach(option => {
+            option.classList.remove('selected');
+            if (option.dataset.color === course.color) {
+                option.classList.add('selected');
+            }
+        });
         
         document.querySelectorAll('input[name="editDay"]').forEach(checkbox => {
             checkbox.checked = false;
@@ -343,7 +434,7 @@ class ScheduleMaker {
         this.currentlyEditedCourse.startTime = this.editStartTimeInput.value;
         this.currentlyEditedCourse.endTime = this.editEndTimeInput.value;
         this.currentlyEditedCourse.days = selectedDays;
-        this.currentlyEditedCourse.color = this.editColorInput.value;
+        this.currentlyEditedCourse.color = this.editSelectedColor;
         this.currentlyEditedCourse.isStandard = isStandard;
         this.currentlyEditedCourse.matchedSlot = matchedSlot ? matchedSlot.label : null;
         
@@ -416,7 +507,7 @@ class ScheduleMaker {
             startTime: this.startTimeInput.value,
             endTime: this.endTimeInput.value,
             days: selectedDays,
-            color: this.colorInput.value,
+            color: this.selectedColor,
             isStandard: isStandard,
             matchedSlot: matchedSlot ? matchedSlot.label : null
         };
@@ -427,14 +518,21 @@ class ScheduleMaker {
         this.generateSchedule();
         
         this.courseForm.reset();
-        this.colorInput.value = "#3498db";
-        this.colorPreview.style.backgroundColor = "#3498db";
-        this.colorText.textContent = "#3498db";
         this.startTimeInput.value = "07:30";
         this.endTimeInput.value = "09:00";
         this.timeSlotSelect.value = "";
         this.courseDescriptionCounter.textContent = "0/30";
         this.courseDescriptionCounter.classList.remove('warning');
+        
+        // Reset to default color
+        this.selectedColor = this.colorPalette[0];
+        this.colorPreview.style.backgroundColor = this.selectedColor;
+        this.colorText.textContent = this.selectedColor;
+        
+        // Update selected state in palette
+        this.colorPaletteElement.querySelectorAll('.color-option').forEach((option, index) => {
+            option.classList.toggle('selected', index === 0);
+        });
     }
     
     findClosestTimeSlot(startTime, endTime) {
@@ -599,7 +697,7 @@ class ScheduleMaker {
             slotsToShow = this.standardSlots.filter(slot => slot.period === this.activeTimeFilter);
         }
         
-        // NEW: Check if we should hide empty rows
+        // Check if we should hide empty rows
         if (this.currentSettings.hideEmptyRows) {
             // Filter slots to only show those that have courses
             slotsToShow = this.getSlotsWithCourses(slotsToShow, daysToShow);
@@ -650,7 +748,7 @@ class ScheduleMaker {
         this.renderCoursesOnSchedule();
     }
     
-    // NEW METHOD: Get slots that have courses
+    // Get slots that have courses
     getSlotsWithCourses(slotsToCheck, daysToShow) {
         const slotsWithCourses = new Set();
         
@@ -793,7 +891,7 @@ class ScheduleMaker {
         });
     }
     
-    // NEW METHOD: Check if a slot is currently visible in the table
+    // Check if a slot is currently visible in the table
     isSlotVisible(slot) {
         if (!this.currentSettings.hideEmptyRows) return true;
         
@@ -987,14 +1085,6 @@ class ScheduleMaker {
         } else {
             return `${hour}:${minute.padStart(2, '0')}`;
         }
-    }
-    
-    getRandomColor() {
-        const colors = [
-            '#3498db', '#2ecc71', '#9b59b6', '#e74c3c', '#f39c12',
-            '#1abc9c', '#d35400', '#c0392b', '#16a085', '#8e44ad'
-        ];
-        return colors[Math.floor(Math.random() * colors.length)];
     }
 }
 
