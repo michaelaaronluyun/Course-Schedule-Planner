@@ -115,10 +115,10 @@
                     
                     <!-- NEW DESCRIPTION FIELD -->
                     <div class="form-group">
-                        <label for="courseDescription"><i class="fas fa-align-left"></i> Description (optional, max 25 chars)</label>
-                        <input type="text" id="courseDescription" placeholder="e.g., Lecture, Lab, etc." maxlength="25">
+                        <label for="courseDescription"><i class="fas fa-align-left"></i> Description (optional, max 30 chars)</label>
+                        <input type="text" id="courseDescription" placeholder="e.g., Lecture, Lab, etc." maxlength="30">
                         <div class="char-counter">
-                            <span id="courseDescriptionCounter">0/25</span>
+                            <span id="courseDescriptionCounter">0/30</span>
                         </div>
                     </div>
                     
@@ -238,6 +238,14 @@
                     </label>
                 </div>
                 
+                <!-- NEW SETTING: Hide Empty Time Rows -->
+                <div class="form-group">
+                    <label class="checkbox-label">
+                        Hide Empty Time Rows
+                        <input type="checkbox" id="hideEmptyRows">
+                    </label>
+                </div>
+                
                 <div class="form-actions">
                     <button type="button" class="btn btn-primary" id="saveSettings">
                         <i class="fas fa-save"></i> Save Settings
@@ -266,10 +274,10 @@
                     
                     <!-- NEW DESCRIPTION FIELD -->
                     <div class="form-group">
-                        <label for="editCourseDescription"><i class="fas fa-align-left"></i> Description (optional, max 25 chars)</label>
-                        <input type="text" id="editCourseDescription" placeholder="e.g., Lecture, Lab, etc." maxlength="25">
+                        <label for="editCourseDescription"><i class="fas fa-align-left"></i> Description (optional, max 30 chars)</label>
+                        <input type="text" id="editCourseDescription" placeholder="e.g., Lecture, Lab, etc." maxlength="30">
                         <div class="char-counter">
-                            <span id="editCourseDescriptionCounter">0/25</span>
+                            <span id="editCourseDescriptionCounter">0/30</span>
                         </div>
                     </div>
                     

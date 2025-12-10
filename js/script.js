@@ -18,7 +18,8 @@ class ScheduleMaker {
             showWeekends: true,
             showWednesday: true,
             timeFormat: '12',
-            highlightIrregular: true
+            highlightIrregular: true,
+            hideEmptyRows: false  // NEW SETTING
         };
         
         this.days = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
@@ -47,6 +48,7 @@ class ScheduleMaker {
         this.showWeekendsCheckbox = document.getElementById('showWeekends');
         this.showWednesdayCheckbox = document.getElementById('showWednesday');
         this.highlightIrregularCheckbox = document.getElementById('highlightIrregular');
+        this.hideEmptyRowsCheckbox = document.getElementById('hideEmptyRows');  // NEW
         this.clearAllBtn = document.getElementById('clearAllBtn');
         this.exportBtn = document.getElementById('exportBtn');
         this.printBtn = document.getElementById('printBtn');
@@ -104,14 +106,14 @@ class ScheduleMaker {
         // Character counter for description
         this.courseDescriptionInput.addEventListener('input', () => {
             const count = this.courseDescriptionInput.value.length;
-            this.courseDescriptionCounter.textContent = `${count}/25`;
-            this.courseDescriptionCounter.classList.toggle('warning', count >= 25);
+            this.courseDescriptionCounter.textContent = `${count}/30`;
+            this.courseDescriptionCounter.classList.toggle('warning', count >= 30);
         });
 
         this.editCourseDescriptionInput.addEventListener('input', () => {
             const count = this.editCourseDescriptionInput.value.length;
-            this.editCourseDescriptionCounter.textContent = `${count}/25`;
-            this.editCourseDescriptionCounter.classList.toggle('warning', count >= 25);
+            this.editCourseDescriptionCounter.textContent = `${count}/30`;
+            this.editCourseDescriptionCounter.classList.toggle('warning', count >= 30);
         });
         
         this.courseForm.addEventListener('submit', (e) => {
@@ -138,6 +140,7 @@ class ScheduleMaker {
             this.showWeekendsCheckbox.checked = this.currentSettings.showWeekends;
             this.showWednesdayCheckbox.checked = this.currentSettings.showWednesday;
             this.highlightIrregularCheckbox.checked = this.currentSettings.highlightIrregular;
+            this.hideEmptyRowsCheckbox.checked = this.currentSettings.hideEmptyRows;  // NEW
         });
         
         this.viewCoursesBtn.addEventListener('click', () => {
@@ -165,6 +168,7 @@ class ScheduleMaker {
             this.currentSettings.showWeekends = this.showWeekendsCheckbox.checked;
             this.currentSettings.showWednesday = this.showWednesdayCheckbox.checked;
             this.currentSettings.highlightIrregular = this.highlightIrregularCheckbox.checked;
+            this.currentSettings.hideEmptyRows = this.hideEmptyRowsCheckbox.checked;  // NEW
             
             this.generateSchedule();
             
@@ -250,12 +254,12 @@ class ScheduleMaker {
             this.startTimeInput.value = "07:30";
             this.endTimeInput.value = "09:00";
             this.timeSlotSelect.value = "";
-            this.courseDescriptionCounter.textContent = "0/25";
+            this.courseDescriptionCounter.textContent = "0/30";
             this.courseDescriptionCounter.classList.remove('warning');
         }
         
         if (dialog === this.editCourseDialog) {
-            this.editCourseDescriptionCounter.textContent = "0/25";
+            this.editCourseDescriptionCounter.textContent = "0/30";
             this.editCourseDescriptionCounter.classList.remove('warning');
         }
     }
@@ -268,8 +272,8 @@ class ScheduleMaker {
         
         // Update character counter
         const descCount = course.description ? course.description.length : 0;
-        this.editCourseDescriptionCounter.textContent = `${descCount}/25`;
-        this.editCourseDescriptionCounter.classList.toggle('warning', descCount >= 25);
+        this.editCourseDescriptionCounter.textContent = `${descCount}/30`;
+        this.editCourseDescriptionCounter.classList.toggle('warning', descCount >= 30);
         
         this.editStartTimeInput.value = course.startTime;
         this.editEndTimeInput.value = course.endTime;
@@ -429,7 +433,7 @@ class ScheduleMaker {
         this.startTimeInput.value = "07:30";
         this.endTimeInput.value = "09:00";
         this.timeSlotSelect.value = "";
-        this.courseDescriptionCounter.textContent = "0/25";
+        this.courseDescriptionCounter.textContent = "0/30";
         this.courseDescriptionCounter.classList.remove('warning');
     }
     
@@ -595,6 +599,12 @@ class ScheduleMaker {
             slotsToShow = this.standardSlots.filter(slot => slot.period === this.activeTimeFilter);
         }
         
+        // NEW: Check if we should hide empty rows
+        if (this.currentSettings.hideEmptyRows) {
+            // Filter slots to only show those that have courses
+            slotsToShow = this.getSlotsWithCourses(slotsToShow, daysToShow);
+        }
+        
         slotsToShow.forEach((slot, slotIndex) => {
             const row = document.createElement('tr');
             row.dataset.slot = slot.label;
@@ -640,6 +650,55 @@ class ScheduleMaker {
         this.renderCoursesOnSchedule();
     }
     
+    // NEW METHOD: Get slots that have courses
+    getSlotsWithCourses(slotsToCheck, daysToShow) {
+        const slotsWithCourses = new Set();
+        
+        // Check each course and mark which slots it appears in
+        this.courses.forEach(course => {
+            const slotIndex = this.standardSlots.findIndex(slot => 
+                slot.start === course.matchedSlot?.replace('Slot ', '') || 
+                (this.timeToMinutes(course.startTime) >= this.timeToMinutes(slot.start) - 15 &&
+                this.timeToMinutes(course.endTime) <= this.timeToMinutes(slot.end) + 15)
+            );
+            
+            if (slotIndex !== -1) {
+                const slot = this.standardSlots[slotIndex];
+                // Check if this slot should be shown based on active filter
+                if (this.activeTimeFilter === 'all' || slot.period === this.activeTimeFilter) {
+                    slotsWithCourses.add(slotIndex);
+                }
+            } else {
+                // For courses that don't match exactly, find nearest slot
+                const courseStartMinutes = this.timeToMinutes(course.startTime);
+                let nearestSlotIndex = 0;
+                let minDiff = Infinity;
+                
+                this.standardSlots.forEach((slot, index) => {
+                    const slotStartMinutes = this.timeToMinutes(slot.start);
+                    const diff = Math.abs(courseStartMinutes - slotStartMinutes);
+                    if (diff < minDiff) {
+                        minDiff = diff;
+                        nearestSlotIndex = index;
+                    }
+                });
+                
+                const slot = this.standardSlots[nearestSlotIndex];
+                if (this.activeTimeFilter === 'all' || slot.period === this.activeTimeFilter) {
+                    slotsWithCourses.add(nearestSlotIndex);
+                }
+            }
+        });
+        
+        // Convert set back to slots array
+        return slotsToCheck.filter(slot => {
+            const slotIndex = this.standardSlots.findIndex(s => 
+                s.start === slot.start && s.end === slot.end
+            );
+            return slotsWithCourses.has(slotIndex);
+        });
+    }
+    
     renderCoursesOnSchedule() {
         this.courses.forEach(course => {
             const start = this.parseTime(course.startTime);
@@ -666,6 +725,10 @@ class ScheduleMaker {
                 });
                 
                 const slot = this.standardSlots[nearestSlotIndex];
+                
+                // Check if slot is visible (might be hidden if hideEmptyRows is on)
+                const isSlotVisible = this.isSlotVisible(slot);
+                if (!isSlotVisible) return;
                 
                 if (this.activeTimeFilter !== 'all' && slot.period !== this.activeTimeFilter) {
                     return;
@@ -698,6 +761,10 @@ class ScheduleMaker {
             
             const slot = this.standardSlots[slotIndex];
             
+            // Check if slot is visible (might be hidden if hideEmptyRows is on)
+            const isSlotVisible = this.isSlotVisible(slot);
+            if (!isSlotVisible) return;
+            
             if (this.activeTimeFilter !== 'all' && slot.period !== this.activeTimeFilter) {
                 return;
             }
@@ -724,6 +791,15 @@ class ScheduleMaker {
                 }
             });
         });
+    }
+    
+    // NEW METHOD: Check if a slot is currently visible in the table
+    isSlotVisible(slot) {
+        if (!this.currentSettings.hideEmptyRows) return true;
+        
+        // Check if there's a row for this slot in the schedule body
+        const slotRow = this.scheduleBody.querySelector(`tr[data-slot="${slot.label}"]`);
+        return slotRow !== null;
     }
 
     getDaysToShow() {
